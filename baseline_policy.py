@@ -5,27 +5,23 @@ Implements a deterministic rule-based policy used as a performance baseline
 against the MDP optimal policy.
 
 Rule logic:
-  High Value       → reward        (keep VIP customers loyal)
-  Offer Responsive → bogo          (double-down on engaged users)
-  Low Value        → discount      (price incentive to spend more)
-  At Risk          → discount      (win-back with a price signal)
-  Inactive         → informational (soft re-engagement, low cost)
-  New / Unknown    → informational (educate before committing spend)
+  High Value       -> bogo
+  Offer Responsive -> bogo
+  Low Value        -> discount
+  At Risk          -> discount
+  Inactive         -> informational
 """
 
 import numpy as np
 from state_engine import STATES, N_STATES
-from transition_builder import ACTIONS, N_ACTIONS
-
-# ── Policy map: state index → action index ────────────────────────────────────
+from transition_builder import ACTIONS
 
 BASELINE_POLICY: dict[int, int] = {
-    0: 3,  # High Value       → reward
-    1: 1,  # Offer Responsive → bogo
-    2: 2,  # Low Value        → discount
-    3: 2,  # At Risk          → discount
-    4: 4,  # Inactive         → informational
-    5: 4,  # New / Unknown    → informational
+    0: 1,  # High Value       -> bogo
+    1: 1,  # Offer Responsive -> bogo
+    2: 2,  # Low Value        -> discount
+    3: 2,  # At Risk          -> discount
+    4: 3,  # Inactive         -> informational
 }
 
 
@@ -39,8 +35,7 @@ def baseline_action(state: int) -> int:
 
 def baseline_policy_vector() -> np.ndarray:
     """
-    Returns a 1-D array π of shape (N_STATES,) where π[s] = action index.
-    Convenient for passing into the simulator and metrics.
+    Returns a 1-D array pi of shape (N_STATES,) where pi[s] = action index.
     """
     return np.array([BASELINE_POLICY[s] for s in range(N_STATES)], dtype=int)
 

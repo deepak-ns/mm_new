@@ -23,10 +23,10 @@ import plotly.graph_objects as go
 import plotly.express as px
 import streamlit as st
 
-# ── Make sure data/ exists before anything imports data_loader ─────────────────
+# -----------------------------------------------------------------------------
 pathlib.Path("data").mkdir(exist_ok=True)
 
-# ── Imports from project modules ───────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 from generate_data    import make_portfolio, make_profile, make_transcript
 from data_loader      import load_all
 from preprocess       import merge_all, build_user_features
@@ -43,19 +43,19 @@ from metrics          import (
 
 import json
 
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 # Page config
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Starbucks MDP Offer Optimizer",
-    page_icon="☕",
+    page_icon="S",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Custom CSS — dark espresso theme
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
+# Custom CSS - dark espresso theme
+# -----------------------------------------------------------------------------
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap');
@@ -126,11 +126,11 @@ PLOT_THEME = dict(
     yaxis=dict(gridcolor="#2d2318", linecolor="#3d2e1e"),
 )
 
-PALETTE = ["#c8a97a", "#e8734a", "#2ecc71", "#3498db", "#9b59b6", "#e74c3c"]
+PALETTE = ["#c8a97a", "#e8734a", "#2ecc71", "#3498db", "#e74c3c"]
 
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 # Data generation helper
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 
 def ensure_data(n_users: int):
     files = ["data/portfolio.json", "data/profile.json", "data/transcript.json"]
@@ -142,14 +142,15 @@ def ensure_data(n_users: int):
         with open("data/profile.json",    "w") as f: json.dump(profiles,   f)
         with open("data/transcript.json", "w") as f: json.dump(transcript, f)
 
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 # Full pipeline (cached)
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 
 @st.cache_data(show_spinner=False)
 def run_pipeline(n_users: int, n_days: int, gamma: float):
     ensure_data(n_users)
     portfolio, profile, transcript = load_all()
+    portfolio = portfolio[portfolio["offer_type"].isin(["bogo", "discount", "informational"])].copy()
 
     # Preprocess
     merged        = merge_all(portfolio, profile, transcript)
@@ -187,48 +188,48 @@ def run_pipeline(n_users: int, n_days: int, gamma: float):
         "mdp_df":          mdp_df,
     }
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Sidebar — controls
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
+# Sidebar - controls
+# -----------------------------------------------------------------------------
 
 with st.sidebar:
-    st.markdown("## ☕ MDP Optimizer")
+    st.markdown("## MDP Optimizer")
     st.markdown("---")
     n_users  = st.slider("Cohort size (users)",    200, 2000, 1000, step=100)
     n_days   = st.slider("Simulation horizon (days)", 30, 180, 90,  step=10)
-    gamma    = st.slider("Discount factor γ",     0.80, 0.99, 0.95, step=0.01)
+    gamma    = st.slider("Discount factor gamma", 0.80, 0.99, 0.95, step=0.01)
     st.markdown("---")
-    run_btn  = st.button("🚀 Run Pipeline", width="stretch")
+    run_btn  = st.button("Run Pipeline", width="stretch")
     st.markdown("---")
     st.markdown("""
 **Actions**
-- `no_offer` · `bogo` · `discount`
-- `reward` · `informational`
+- `no_offer` - `bogo` - `discount`
+- `informational`
 
 **States**
-- High Value · Offer Responsive
-- Low Value · At Risk
-- Inactive · New/Unknown
+- High Value - Offer Responsive
+- Low Value - At Risk
+- Inactive
     """)
 
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 # Header
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 
 st.markdown("""
 <h1 style='font-family:Playfair Display,serif; font-size:2.4rem; color:#c8a97a; margin-bottom:0'>
   Starbucks MDP Offer Optimizer
 </h1>
 <p style='color:#a08060; margin-top:4px; margin-bottom:1.5rem; font-size:0.95rem'>
-  Markov Decision Process · Value Iteration · 90-Day Revenue Simulation
+  Markov Decision Process | Value Iteration | 90-Day Revenue Simulation
 </p>
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 # Run pipeline
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 
-with st.spinner("Running pipeline…"):
+with st.spinner("Running pipeline..."):
     data = run_pipeline(n_users, n_days, gamma)
 
 uf     = data["user_features"]
@@ -239,36 +240,34 @@ pi     = data["optimal_policy"]
 bpi    = data["baseline_policy"]
 P      = data["P"]
 R      = data["R"]
-vi_hist = data["vi_history"]
 
 bm = compute_metrics(bdf, n_days)
 mm = compute_metrics(mdf, n_days)
 
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 # Tabs
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 
 tabs = st.tabs([
-    "📊 Overview",
-    "📈 Revenue Simulation",
-    "🗺️ Policy & States",
-    "🔁 Transition Matrix",
-    "⚙️ MDP Internals",
-    "🗃️ Raw Data",
+    "Overview",
+    "Revenue Simulation",
+    "Policy & States",
+    "Transition Matrix",
+    "Raw Data",
 ])
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 0 — Overview KPIs
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# TAB 0 - Overview KPIs
+# -----------------------------------------------------------------------------
 with tabs[0]:
     st.markdown("<div class='section-header'>Key Performance Indicators</div>", unsafe_allow_html=True)
 
     cols = st.columns(4)
     kpi_items = [
-        ("💰 Net Revenue (MDP)",   f"${mm['net_revenue']:,.0f}",   f"Baseline: ${bm['net_revenue']:,.0f}"),
-        ("📈 Total Revenue (MDP)", f"${mm['total_revenue']:,.0f}", f"+{mm['total_revenue']-bm['total_revenue']:,.0f} vs baseline"),
-        ("🎯 Retention Rate",      f"{mm['retention_rate']*100:.1f}%", f"Baseline: {bm['retention_rate']*100:.1f}%"),
-        ("✅ Offer Completion",    f"{mm['offer_completion_rate']*100:.1f}%", f"Baseline: {bm['offer_completion_rate']*100:.1f}%"),
+        ("Net Revenue (MDP)",   f"${mm['net_revenue']:,.0f}",   f"Baseline: ${bm['net_revenue']:,.0f}"),
+        ("Total Revenue (MDP)", f"${mm['total_revenue']:,.0f}", f"+{mm['total_revenue']-bm['total_revenue']:,.0f} vs baseline"),
+        ("Retention Rate",      f"{mm['retention_rate']*100:.1f}%", f"Baseline: {bm['retention_rate']*100:.1f}%"),
+        ("Offer Completion",    f"{mm['offer_completion_rate']*100:.1f}%", f"Baseline: {bm['offer_completion_rate']*100:.1f}%"),
     ]
     for col, (label, val, delta) in zip(cols, kpi_items):
         col.metric(label, val, delta)
@@ -298,14 +297,14 @@ with tabs[0]:
         fig = px.bar(
             ad, x="Action", y="Fraction",
             color="Action", color_discrete_sequence=PALETTE,
-            title=f"{title} — Action Mix",
+            title=f"{title} - Action Mix",
         )
         fig.update_layout(**PLOT_THEME, title_font_color="#c8a97a", showlegend=False)
         col.plotly_chart(fig, width="stretch")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 1 — Revenue Simulation
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# TAB 1 - Revenue Simulation
+# -----------------------------------------------------------------------------
 with tabs[1]:
     st.markdown("<div class='section-header'>Daily Revenue: Baseline vs MDP</div>", unsafe_allow_html=True)
 
@@ -365,9 +364,9 @@ with tabs[1]:
     fig4.update_layout(**PLOT_THEME, height=320, legend=dict(bgcolor="rgba(0,0,0,0)"))
     st.plotly_chart(fig4, width="stretch")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 2 — Policy & States
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# TAB 2 - Policy & States
+# -----------------------------------------------------------------------------
 with tabs[2]:
     st.markdown("<div class='section-header'>Optimal Policy vs Baseline</div>", unsafe_allow_html=True)
 
@@ -378,7 +377,7 @@ with tabs[2]:
             "Baseline Action":  ACTIONS[bpi[s]],
             "MDP Action":       ACTIONS[pi[s]],
             "V*(s)":            round(float(V[s]), 3),
-            "Changed?":         "✅ Yes" if pi[s] != bpi[s] else "—",
+            "Changed?":         "Yes" if pi[s] != bpi[s] else "-",
         })
     policy_df = pd.DataFrame(policy_rows)
     st.dataframe(policy_df, width="stretch", hide_index=True)
@@ -411,16 +410,16 @@ with tabs[2]:
         st.plotly_chart(fig6, width="stretch")
 
     # Value function bar
-    st.markdown("<div class='section-header'>Value Function V*(s) — Long-Run Expected Return</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>Value Function V*(s) - Long-Run Expected Return</div>", unsafe_allow_html=True)
     vf_df = pd.DataFrame({"State": [STATES[s] for s in range(N_STATES)], "V*": V})
     fig7 = px.bar(vf_df, x="State", y="V*",
                   color="State", color_discrete_map=STATE_COLORS)
     fig7.update_layout(**PLOT_THEME, height=300, showlegend=False)
     st.plotly_chart(fig7, width="stretch")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 3 — Transition Matrix
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# TAB 3 - Transition Matrix
+# -----------------------------------------------------------------------------
 with tabs[3]:
     st.markdown("<div class='section-header'>Transition Probability Heatmaps P[s, a, s']</div>", unsafe_allow_html=True)
 
@@ -462,64 +461,8 @@ with tabs[3]:
                        coloraxis_colorbar=dict(title="Reward", tickfont_color="#f5efe6"))
     st.plotly_chart(fig9, width="stretch")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 4 — MDP Internals
-# ─────────────────────────────────────────────────────────────────────────────
+# TAB 4 - Raw Data
 with tabs[4]:
-    st.markdown("<div class='section-header'>Value Iteration Convergence</div>", unsafe_allow_html=True)
-
-    vi_df = pd.DataFrame(vi_hist, columns=["Iteration", "Max Delta"])
-    fig10 = px.line(vi_df, x="Iteration", y="Max Delta", log_y=True,
-                    title="Bellman Residual (log scale)")
-    fig10.update_layout(**PLOT_THEME, height=320)
-    fig10.update_traces(line_color="#c8a97a")
-    st.plotly_chart(fig10, width="stretch")
-
-    st.info(f"Converged in **{len(vi_hist)}** iterations  |  γ = {gamma}  |  Final residual = {vi_hist[-1][1]:.2e}")
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.markdown("<div class='section-header'>Q-Values (Final)</div>", unsafe_allow_html=True)
-        gamma_v = gamma
-        Q_final = R + gamma_v * np.einsum("san,n->sa", P, V)
-        q_df = pd.DataFrame(Q_final, index=state_labels, columns=list(ACTIONS.values()))
-        fig11 = px.imshow(q_df, color_continuous_scale="YlOrBr",
-                          text_auto=".2f", aspect="auto",
-                          labels=dict(x="Action", y="State", color="Q"))
-        fig11.update_layout(**PLOT_THEME, height=340)
-        st.plotly_chart(fig11, width="stretch")
-
-    with c2:
-        st.markdown("<div class='section-header'>State Value Function</div>", unsafe_allow_html=True)
-        v_df = pd.DataFrame({"State": state_labels, "V*(s)": V, "Optimal Action": [ACTIONS[a] for a in pi]})
-        fig12 = px.bar(v_df, x="V*(s)", y="State", orientation="h",
-                       color="Optimal Action", color_discrete_sequence=PALETTE,
-                       text="Optimal Action")
-        fig12_theme = {
-            **PLOT_THEME,
-            "yaxis": {**PLOT_THEME["yaxis"], "categoryorder": "total ascending"},
-        }
-        fig12.update_layout(**fig12_theme, height=340, showlegend=False)
-        st.plotly_chart(fig12, width="stretch")
-
-    # Sensitivity: vary gamma
-    st.markdown("<div class='section-header'>Policy Sensitivity to γ</div>", unsafe_allow_html=True)
-    gamma_range = np.arange(0.80, 1.00, 0.02)
-    sensitivity_rows = []
-    for g in gamma_range:
-        Vg, pig, _ = value_iteration(P, R, gamma=g, max_iter=500)
-        sensitivity_rows.append({
-            "gamma": round(g, 2),
-            **{STATES[s]: ACTIONS[pig[s]] for s in range(N_STATES)},
-        })
-    sens_df = pd.DataFrame(sensitivity_rows)
-    st.dataframe(sens_df.set_index("gamma"), width="stretch")
-
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 5 — Raw Data
-# ─────────────────────────────────────────────────────────────────────────────
-with tabs[5]:
     st.markdown("<div class='section-header'>User Feature Table</div>", unsafe_allow_html=True)
     display_cols = [
         "person", "state_name", "total_spend", "n_transactions",
@@ -535,12 +478,13 @@ with tabs[5]:
     port_df = pd.DataFrame(data["portfolio"])
     st.dataframe(port_df, width="stretch", hide_index=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 # Footer
-# ══════════════════════════════════════════════════════════════════════════════
+# -----------------------------------------------------------------------------
 st.markdown("""
 <hr style='border-color:#3d2e1e; margin-top:2rem'>
 <p style='text-align:center; color:#5a4030; font-size:0.8rem'>
-  MDP Offer Optimizer · Starbucks Dataset · Value Iteration · Built with Streamlit
+  MDP Offer Optimizer | Starbucks Dataset | Value Iteration | Built with Streamlit
 </p>
 """, unsafe_allow_html=True)
+

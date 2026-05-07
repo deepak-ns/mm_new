@@ -28,8 +28,6 @@ def make_portfolio():
         {"id": "offer_disc_2",   "offer_type": "discount",      "difficulty": 10, "reward": 2,  "duration": 10, "channels": ["email","mobile","web"]},
         {"id": "offer_info_1",   "offer_type": "informational", "difficulty": 0,  "reward": 0,  "duration": 4,  "channels": ["email"]},
         {"id": "offer_info_2",   "offer_type": "informational", "difficulty": 0,  "reward": 0,  "duration": 3,  "channels": ["mobile","web"]},
-        {"id": "offer_reward_1", "offer_type": "reward",        "difficulty": 15, "reward": 8,  "duration": 10, "channels": ["email","mobile","web"]},
-        {"id": "offer_reward_2", "offer_type": "reward",        "difficulty": 20, "reward": 10, "duration": 7,  "channels": ["email"]},
     ]
     return offers
 
@@ -80,10 +78,6 @@ def make_transcript(profiles, portfolio, n_events_per_user=(8, 30)):
         if random.random() < 0.15:
             n_events = random.randint(0, 3)
             hours = sorted(np.random.choice(720, size=n_events, replace=False).tolist()) if n_events > 0 else []
-        # 10% are brand new (1-2 events only)
-        elif random.random() < 0.10:
-            n_events = random.randint(1, 2)
-            hours = sorted(np.random.choice(720, size=n_events, replace=False).tolist())
         # 12% are at-risk: had activity but mostly old (high recency)
         elif random.random() < 0.12:
             n_events = random.randint(3, 8)

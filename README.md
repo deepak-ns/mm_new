@@ -1,4 +1,4 @@
-# ☕ Starbucks MDP Offer Optimizer
+﻿# â˜• Starbucks MDP Offer Optimizer
 
 A complete **Markov Decision Process** project that learns the optimal offer policy for Starbucks customers using Value Iteration.
 
@@ -8,23 +8,23 @@ A complete **Markov Decision Process** project that learns the optimal offer pol
 
 ```
 mdp_starbucks/
-├── data/                     ← auto-generated JSON files
-│   ├── portfolio.json         (offer catalog)
-│   ├── profile.json           (customer demographics)
-│   └── transcript.json        (event log)
-│
-├── generate_data.py           ← synthetic Starbucks-like dataset
-├── data_loader.py             ← JSON → DataFrames
-├── preprocess.py              ← flatten, merge, feature engineering
-├── state_engine.py            ← RFM-based user state classifier (6 states)
-├── transition_builder.py      ← P[s,a,s'] empirical transition matrix
-├── reward_engine.py           ← R[s,a] with bonuses & penalties
-├── baseline_policy.py         ← rule-based heuristic policy
-├── mdp_solver.py              ← Value Iteration (Bellman optimality)
-├── simulator.py               ← 90-day Monte Carlo cohort simulator
-├── metrics.py                 ← KPI computation & comparison
-├── app.py                     ← Streamlit dashboard
-└── requirements.txt
+â”œâ”€â”€ data/                     â† auto-generated JSON files
+â”‚   â”œâ”€â”€ portfolio.json         (offer catalog)
+â”‚   â”œâ”€â”€ profile.json           (customer demographics)
+â”‚   â””â”€â”€ transcript.json        (event log)
+â”‚
+â”œâ”€â”€ generate_data.py           â† synthetic Starbucks-like dataset
+â”œâ”€â”€ data_loader.py             â† JSON â†’ DataFrames
+â”œâ”€â”€ preprocess.py              â† flatten, merge, feature engineering
+â”œâ”€â”€ state_engine.py            â† RFM-based user state classifier (5 states)
+â”œâ”€â”€ transition_builder.py      â† P[s,a,s'] empirical transition matrix
+â”œâ”€â”€ reward_engine.py           â† R[s,a] with bonuses & penalties
+â”œâ”€â”€ baseline_policy.py         â† rule-based heuristic policy
+â”œâ”€â”€ mdp_solver.py              â† Value Iteration (Bellman optimality)
+â”œâ”€â”€ simulator.py               â† 90-day Monte Carlo cohort simulator
+â”œâ”€â”€ metrics.py                 â† KPI computation & comparison
+â”œâ”€â”€ app.py                     â† Streamlit dashboard
+â””â”€â”€ requirements.txt
 ```
 
 ---
@@ -48,11 +48,11 @@ streamlit run app.py
 
 | Component | Description |
 |-----------|-------------|
-| **States S** | High Value, Offer Responsive, Low Value, At Risk, Inactive, New/Unknown |
-| **Actions A** | no_offer, bogo, discount, reward, informational |
+| **States S** | High Value, Offer Responsive, Low Value, At Risk, Inactive |
+| **Actions A** | no_offer, bogo, discount, informational |
 | **Transition P[s,a,s']** | Empirically estimated from event log + Laplace smoothing |
-| **Reward R[s,a]** | Transaction revenue + offer completion bonus − cost − spam penalty |
-| **Discount γ** | 0.95 (configurable via sidebar) |
+| **Reward R[s,a]** | Transaction revenue + offer completion bonus âˆ’ cost âˆ’ spam penalty |
+| **Discount Î³** | 0.95 (configurable via sidebar) |
 | **Solver** | Value Iteration (converges in ~300 iterations) |
 
 ---
@@ -63,7 +63,7 @@ streamlit run app.py
 |--------|----------|-------------|------|
 | Net Revenue | $85k | $141k | +66% |
 | Total Revenue | $167k | $200k | +20% |
-| Offer Cost | $82k | $58k | −29% |
+| Offer Cost | $82k | $58k | âˆ’29% |
 | Avg Reward/step | 4.21 | 5.92 | +40% |
 | Offer Completion | 50.9% | 70.0% | +37% |
 
@@ -71,12 +71,12 @@ streamlit run app.py
 
 ## Dashboard Tabs
 
-1. **Overview** — KPI cards + policy comparison table + action mix
-2. **Revenue Simulation** — cumulative revenue, rolling net revenue, cost breakdown
-3. **Policy & States** — optimal vs baseline, state distribution, value function
-4. **Transition Matrix** — interactive heatmap per action + reward matrix
-5. **MDP Internals** — convergence plot, Q-values, policy sensitivity to γ
-6. **Raw Data** — user features, simulation log, offer portfolio
+1. **Overview** â€” KPI cards + policy comparison table + action mix
+2. **Revenue Simulation** â€” cumulative revenue, rolling net revenue, cost breakdown
+3. **Policy & States** â€” optimal vs baseline, state distribution, value function
+4. **Transition Matrix** â€” interactive heatmap per action + reward matrix
+5. **MDP Internals** â€” convergence plot, Q-values, policy sensitivity to Î³
+6. **Raw Data** â€” user features, simulation log, offer portfolio
 
 ---
 
@@ -86,3 +86,5 @@ streamlit run app.py
 - **More states**: Extend `state_engine.py` with clustering (KMeans/GMM)
 - **Personalised rewards**: Make `reward_engine.py` use per-user income/spend features
 - **Online learning**: Add a Q-learning update step in `simulator.py`
+
+

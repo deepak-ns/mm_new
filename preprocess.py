@@ -47,7 +47,15 @@ def merge_all(
     Returns a single enriched DataFrame with one row per transcript event.
     Joins offer metadata (difficulty, offer_type) and user demographics.
     """
+    valid_offer_types = {"bogo", "discount", "informational"}
+    portfolio = portfolio[portfolio["offer_type"].isin(valid_offer_types)].copy()
+    valid_offer_ids = set(portfolio["id"])
+
     flat = flatten_transcript(transcript)
+    flat = flat[
+        flat["offer_id"].isna()
+        | flat["offer_id"].isin(valid_offer_ids)
+    ].copy()
 
     # Join offer metadata where available
     merged = flat.merge(
